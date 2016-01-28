@@ -48,6 +48,10 @@ function setupControls() {
         getFollowed();
         return false;
     });
+    $("#sharingSubmit").click(function () {
+        shareDocument();
+        return false;
+    });
 }
 function getQueryStringParameter(paramToRetrieve) {
     var params =
@@ -427,5 +431,101 @@ function getFollowed() {
     } catch (err) {
         alert(err.message);
     }
+}
+
+//Sharing
+function shareDocument() {
+    try {
+
+        var ctxWeb = context.get_web();
+        var currentUser = ctxWeb.get_currentUser();
+        context.load(currentUser);
+        context.executeQueryAsync(
+            function () {
+                var userId = currentUser.get_loginName();
+                var docUrl = $('#inputFileUrl').val();
+                var executor = new SP.RequestExecutor(appWebUrl);
+                var restSource = appWebUrl + "/_api/SP.UI.ApplicationPages.ClientPeoplePickerWebServiceInterface.clientPeoplePickerResolveUser";
+
+                var restData = JSON.stringify({
+                    'queryParams': {
+                        '__metadata': {
+                            'type': 'SP.UI.ApplicationPages.ClientPeoplePickerQueryParameters'
+                        },
+                        'AllowEmailAddresses': true,
+                        'AllowMultipleEntities': false,
+                        'AllUrlZones': false,
+                        'MaximumEntitySuggestions': 50,
+                        'PrincipalSource': 15,
+                        'PrincipalType': 1,
+                        'QueryString': userId.toString()
+                        //'Required':false,
+                        //'SharePointGroupID':null,
+                        //'UrlZone':null,
+                        //'UrlZoneSpecified':false,
+                        //'Web':null,
+                        //'WebApplicationID':null
+                    }
+                });
+                executor.executeAsync({
+                    url: restSource,
+                    method: "POST",
+                    headers: {
+                        "accept": "application/json;odata=verbose",
+                        "content-type": "application/json;odata=verbose",
+                        "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                    },
+                    body: restData,
+                    success: function (data) {
+                        var body = JSON.parse(data.body);
+                        var results = body.d.ClientPeoplePickerResolveUser;
+                        if (results.length > 0) {
+                            var reqUrl = appWebUrl + "/_api/SP.Web.ShareObject";
+                            var executor = new SP.RequestExecutor(appWebUrl);
+                            var data = JSON.stringify({
+                                    "url": docUrl,
+                                    "peoplePickerInput": '[' + results + ']',
+                                    "roleValue":  "1073741827",
+                                    "groupId":  0,
+                                    "propagateAcl":  false,
+                                    "sendEmail":  true,
+                                    "includeAnonymousLinkInEmail":  true,
+                                    "emailSubject":  "Sharing Test",
+                                    "emailBody":  "This is a Sharing Test."
+                            });
+
+                            executor.executeAsync({
+                                url: reqUrl,
+                                method: "POST",
+                                headers: {
+                                    "accept": "application/json;odata=verbose",
+                                    "content-type": "application/json;odata=verbose",
+                                    "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                                },
+                                body: data,
+                                success: function (data) {
+                                    $("#sharingOutput").html("Sharing succeeded for '" + docUrl + "'.").css("color", "green");
+                                },
+                                error: function (result, code, message) {
+                                    $("#sharingOutput").html(message).css("color", "red");
+                                }
+                            });
+                        }
+                        
+                    },
+                    error: function (result, code, message) {
+                        $("#sharingOutput").html(message).css("color", "red");
+                    }
+                });
+
+            },
+            function (sender, args) {
+                $("#sharingOutput").html(args.get_message()).css("color", "red");
+            }
+        );
+    } catch (err) {
+        alert(err.message);
+    }
+
 }
 

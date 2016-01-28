@@ -55,6 +55,9 @@
             <li>
                 Social
             </li>
+            <li>
+                Sharing
+            </li>
         </ul>
         <div id="listItems" class="contentDiv">
             <div id="demoSelector" style="width:100%;padding-bottom:10px;padding-top:10px;">
@@ -125,6 +128,18 @@
                 <div id="socialOutput" style="width:99%"></div>
             </div>
         </div>
+        <div id="sharingContent" class="contentDiv">
+            <div id="sharingFileUrl" style="width:100%;padding-bottom:10px;padding-top:10px;">
+                <span style="font-size:14pt;font-weight:bold;">File URL:</span><br /><br />
+                <input id="inputFileUrl" type="text" style="width:99%;height:30px;font-size:14pt;" />
+            </div>
+            <div id="sharingActions" style="width:100%;">
+                <button id="sharingSubmit" style="border:1px solid black;">Submit</button>
+            </div>
+            <div id="sharingResults" style="width:100%">
+                <br /><span style="font-size:14pt;font-weight:bold;">Results:</span><br/><br/>
+                <div id="sharingOutput" style="width:99%"></div>
+            </div>
         </div>
     </div>
 </asp:Content>
